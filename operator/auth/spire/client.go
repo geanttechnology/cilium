@@ -57,9 +57,14 @@ var FakeCellClient = cell.Module(
 	cell.Provide(NewFakeClient),
 )
 
+// MutualAuthConfig contains general configuration for mutual authentication.
+type MutualAuthConfig struct {
+	Enabled bool `mapstructure:"mesh-auth-mutual-enabled"`
+}
+
 // ClientConfig contains the configuration for the SPIRE client.
 type ClientConfig struct {
-	MutualAuthEnabled            bool          `mapstructure:"mesh-auth-mutual-enabled"`
+	MutualAuthConfig
 	SpireAgentSocketPath         string        `mapstructure:"mesh-auth-spire-agent-socket"`
 	SpireServerAddress           string        `mapstructure:"mesh-auth-spire-server-address"`
 	SpireServerConnectionTimeout time.Duration `mapstructure:"mesh-auth-spire-server-connection-timeout"`
@@ -68,7 +73,7 @@ type ClientConfig struct {
 
 // Flags adds the flags used by ClientConfig.
 func (cfg ClientConfig) Flags(flags *pflag.FlagSet) {
-	flags.BoolVar(&cfg.MutualAuthEnabled,
+	flags.BoolVar(&cfg.Enabled,
 		"mesh-auth-mutual-enabled",
 		false,
 		"The flag to enable mutual authentication for the SPIRE server (beta).")
@@ -107,7 +112,7 @@ type Client struct {
 // NewClient creates a new SPIRE client.
 // If the mutual authentication is not enabled, it returns a noop client.
 func NewClient(params params, lc cell.Lifecycle, cfg ClientConfig, log *slog.Logger) identity.Provider {
-	if !cfg.MutualAuthEnabled {
+	if !cfg.Enabled {
 		return &noopClient{}
 	}
 	client := &Client{
