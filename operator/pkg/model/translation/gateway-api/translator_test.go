@@ -53,6 +53,7 @@ func Test_translator_Translate(t *testing.T) {
 		{name: "conformance/httproute_rewrite_path"},
 		{name: "conformance/httproute_request_mirror"},
 		{name: "conformance/httproute_request_redirect_with_multi_httplisteners"},
+		{name: "conformance/httproute_backend_protocol_h_2_c_app_protocol"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -75,41 +76,6 @@ func Test_translator_Translate(t *testing.T) {
 			require.Equal(t, expectedService, svc, "Service mismatch")
 
 			diffOutput := cmp.Diff(expectedCEC, cec, protocmp.Transform())
-			if len(diffOutput) != 0 {
-				t.Errorf("CiliumEnvoyConfigs did not match:\n%s\n", diffOutput)
-			}
-		})
-	}
-}
-
-func Test_translator_Translate_AppProtocol(t *testing.T) {
-	tests := []struct {
-		name    string
-		wantErr bool
-	}{
-		{name: "conformance/httproute_backend_protocol_h_2_c_app_protocol"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			cfg := translation.Config{}
-			readInput(t, fmt.Sprintf("testdata/%s/config-input.yaml", tt.name), &cfg)
-
-			trans := &gatewayAPITranslator{
-				cecTranslator: translation.NewCECTranslator(cfg),
-			}
-
-			input := &model.Model{}
-			readInput(t, fmt.Sprintf("testdata/%s/input.yaml", tt.name), input)
-			output := &ciliumv2.CiliumEnvoyConfig{}
-			readOutput(t, fmt.Sprintf("testdata/%s/cec-output.yaml", tt.name), output)
-			expectedService := &corev1.Service{}
-			readOutput(t, fmt.Sprintf("testdata/%s/service-output.yaml", tt.name), expectedService)
-
-			cec, svc, _, err := trans.Translate(input)
-
-			require.Equal(t, tt.wantErr, err != nil, "Error mismatch")
-			require.Equal(t, expectedService, svc, "Service mismatch")
-			diffOutput := cmp.Diff(output, cec, protocmp.Transform())
 			if len(diffOutput) != 0 {
 				t.Errorf("CiliumEnvoyConfigs did not match:\n%s\n", diffOutput)
 			}
@@ -379,7 +345,7 @@ func Test_getService(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := getService(tt.args.resource, tt.args.allPorts, tt.args.labels, tt.args.annotations, tt.args.externalTrafficPolicy)
+			got := getService(nil, tt.args.resource, tt.args.allPorts, tt.args.labels, tt.args.annotations, tt.args.externalTrafficPolicy)
 			assert.Equalf(t, tt.want, got, "getService(%v, %v, %v, %v)", tt.args.resource, tt.args.allPorts, tt.args.labels, tt.args.annotations)
 			assert.LessOrEqual(t, len(got.Name), 63, "Service name is too long")
 		})
