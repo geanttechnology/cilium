@@ -101,12 +101,13 @@ func (t *gatewayAPITranslator) Translate(m *model.Model) (*ciliumv2.CiliumEnvoyC
 	}
 
 	ep := t.desiredEndpoints(source, allLabels, allAnnotations)
-	lbSvc := t.desiredService(source, ports, allLabels, allAnnotations)
+	lbSvc := t.desiredService(listeners[0].GetService(), source, ports, allLabels, allAnnotations)
 
 	return cec, lbSvc, ep, err
 }
 
-func (t *gatewayAPITranslator) desiredService(owner *model.FullyQualifiedResource, ports []uint32, labels, annotations map[string]string) *corev1.Service {
+func (t *gatewayAPITranslator) desiredService(params *model.Service, owner *model.FullyQualifiedResource,
+	ports []uint32, labels, annotations map[string]string) *corev1.Service {
 	if owner == nil {
 		return nil
 	}
@@ -147,7 +148,7 @@ func (t *gatewayAPITranslator) desiredService(owner *model.FullyQualifiedResourc
 			},
 		},
 		Spec: corev1.ServiceSpec{
-			Type:                  corev1.ServiceTypeLoadBalancer,
+			Type:                  toServiceType(params),
 			ExternalTrafficPolicy: corev1.ServiceExternalTrafficPolicy(t.externalTrafficPolicy),
 			Ports:                 servicePorts,
 		},
@@ -159,6 +160,13 @@ func (t *gatewayAPITranslator) desiredService(owner *model.FullyQualifiedResourc
 	}
 
 	return res
+}
+
+func toServiceType(params *model.Service) corev1.ServiceType {
+	if params == nil {
+		return corev1.ServiceTypeLoadBalancer
+	}
+	return corev1.ServiceType(params.Type)
 }
 
 func (t *gatewayAPITranslator) desiredEndpoints(owner *model.FullyQualifiedResource, labels, annotations map[string]string) *corev1.Endpoints {

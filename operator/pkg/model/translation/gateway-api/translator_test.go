@@ -32,6 +32,7 @@ func Test_translator_Translate(t *testing.T) {
 		wantErr bool
 	}{
 		{name: "basic_http_listener"},
+		{name: "basic_http_listener_nodeport"},
 		{name: "basic_tls_sni_listener"},
 		{name: "conformance/httproute_simple_same_namespace"},
 		{name: "conformance/httproute_backend_protocol_h_2_c"},
