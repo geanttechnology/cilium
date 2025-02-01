@@ -26,8 +26,9 @@ type GatewayClassConfig struct {
 type ServiceConfig struct {
 	// Type is the type of the service (e.g. LoadBalancer, NodePort, ClusterIP).
 	// Defaults to LoadBalancer
-	Type                  *string `json:"type,omitempty"`
-	ExternalTrafficPolicy *string `json:"externalTrafficPolicy,omitempty"`
+	Type                     *string  `json:"type,omitempty"`
+	ExternalTrafficPolicy    *string  `json:"externalTrafficPolicy,omitempty"`
+	LoadBalancerSourceRanges []string `json:"loadBalancerSourceRanges,omitempty"`
 }
 
 func toServiceModel(params *GatewayClassConfig) *model.Service {
@@ -44,6 +45,7 @@ func toServiceModel(params *GatewayClassConfig) *model.Service {
 	}
 
 	res.ExternalTrafficPolicy = params.Service.ExternalTrafficPolicy
+	res.LoadBalancerSourceRanges = params.Service.LoadBalancerSourceRanges
 
 	return res
 }

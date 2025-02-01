@@ -148,9 +148,10 @@ func (t *gatewayAPITranslator) desiredService(params *model.Service, owner *mode
 			},
 		},
 		Spec: corev1.ServiceSpec{
-			Type:                  toServiceType(params),
-			ExternalTrafficPolicy: toExternalTrafficPolicy(params, t.externalTrafficPolicy),
-			Ports:                 servicePorts,
+			Type:                     toServiceType(params),
+			ExternalTrafficPolicy:    toExternalTrafficPolicy(params, t.externalTrafficPolicy),
+			Ports:                    servicePorts,
+			LoadBalancerSourceRanges: toLBSourceRange(params),
 		},
 	}
 
@@ -160,6 +161,19 @@ func (t *gatewayAPITranslator) desiredService(params *model.Service, owner *mode
 	}
 
 	return res
+}
+
+func toLBSourceRange(params *model.Service) []string {
+	if params == nil || params.LoadBalancerSourceRanges == nil {
+		return nil
+	}
+
+	// Only return the source ranges if the service type is LoadBalancer
+	if toServiceType(params) != corev1.ServiceTypeLoadBalancer {
+		return nil
+	}
+
+	return params.LoadBalancerSourceRanges
 }
 
 func toServiceType(params *model.Service) corev1.ServiceType {

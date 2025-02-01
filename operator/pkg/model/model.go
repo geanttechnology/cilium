@@ -173,7 +173,8 @@ type Service struct {
 	// Applicable only if Type is Node NodePort
 	SecureNodePort *uint32 `json:"secure_node_port,omitempty"`
 
-	ExternalTrafficPolicy *string `json:"external_traffic_policy,omitempty"`
+	ExternalTrafficPolicy    *string  `json:"external_traffic_policy,omitempty"`
+	LoadBalancerSourceRanges []string `json:"load_balancer_source_ranges,omitempty"`
 }
 
 // FullyQualifiedResource stores the full details of a Kubernetes resource, including
